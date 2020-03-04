@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block 'body' %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-10">
+                <h1>Carriers</h1>
+            </div>
+            <div class="col-sm-2">
+                <a href="{% url 'new-carrier' %}" class="btn btn-primary">Nuevo carrier</a>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Listado de carriers</h3>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+              <table id="example2" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                  <th>Site</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Enabled</th>
+                  <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for carrier in list_carrier %}
+                    <tr>
+                        <td>{{ carrier.site }}</td>
+                        <td>{{ carrier.code }}</td>
+                        <td>{{ carrier.name }}</td>
+                        <td>{{ carrier.enabled }}</td>
+                        <td>
+                            <a href="{% url 'edit-carrier' carrier.pk %}" class="btn btn-secondary"><em class="fas fa-pen"></em></a>
+                            <a href="#" class="btn btn-danger"><em class="fa fa-trash"></em></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                  <th>Site</th>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Enabled</th>
+                    <th>Actions</th>
+                </tr>
+                </tfoot>
+              </table>
+            </div>
+            <!-- /.card-body -->
+          </div>
+          <!-- /.card -->
+<!-- /.card -->
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </section>
+    <!-- /.content -->
+{% endblock 'body' %}
+{% block 'js' %}
+    $(function () {
+        $('#example2').DataTable({
+          "paging": true,
+          "lengthChange": false,
+          "searching": false,
+          "ordering": true,
+          "info": true,
+          "autoWidth": false,
+        });
+      });
+{% endblock 'js' %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block 'body' %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Nuevo Access Point</h3>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group {% if form.name.errors %}has-danger{% endif %}">
+                        {{ form.name }}
+                        {{ form.name.errors }}
+                        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    </div>
+                    <div class="form-group {% if form.url.errors %}has-danger{% endif %}">
+                        {{ form.url }}
+                        {{ form.url.errors }}
+                        <label for="{{ form.url.id_for_label }}">{{ form.url.label }}</label>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary fuse-ripple-ready">Guardar</button>
+                        <a href="{% url 'access_points' %}" class="btn btn-light fuse-ripple-ready">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+{% endblock 'body' %}
+{% block 'js' %}
+
+{% endblock 'js' %}

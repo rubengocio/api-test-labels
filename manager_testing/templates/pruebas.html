@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block 'body' %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-10">
+                <h1>Pruebas</h1>
+            </div>
+            <div class="col-sm-2">
+                <a href="{% url 'new-test' %}" class="btn btn-primary">Nueva Prueba</a>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Listado de pruebas</h3>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+              <table id="example2" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                  <th>Release</th>
+                  <th>Fecha creacion</th>
+                  <th>Fecha inicio test</th>
+                  <th>Fecha fin test</th>
+                  <th>Total de tests</th>
+                  <th>Tests exitosos</th>
+                  <th>Tests fallidos</th>
+                  <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for test in list_tests %}
+                    <tr>
+                        <td>{{ test.release }}</td>
+                        <td>{{ test.creation_date }}</td>
+                        <td>{{ test.running_start_date }}</td>
+                        <td>{{ test.running_end_date }}</td>
+                        <td>{{ test.total_tests }}</td>
+                        <td><a href="{% url 'success_results' test.pk %}">{{ test.success_test }}</a> </td>
+                        <td><a href="{% url 'fail_results' test.pk %}">{{ test.fail_test }}</a></td>
+                    <td>
+                        <a href="{% url 'edit-test' test.pk %}" class="btn btn-secondary"><em class="fas fa-pen"></em></a>
+                        <a href="#" class="btn btn-danger"><em class="fa fa-trash"></em></a>
+                        {% if  test.is_running is False %}
+                            <a href="{% url 'run_test' test.pk %}" class="btn btn-primary"><em class="fas fa-play"></em></a>
+                        {% endif %}
+                    </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                  <th>Release</th>
+                  <th>Fecha creacion</th>
+                  <th>Fecha inicio test</th>
+                  <th>Fecha fin test</th>
+                  <th>Total de tests</th>
+                  <th>Tests exitosos</th>
+                  <th>Tests fallidos</th>
+                  <th>Acciones</th>
+                </tr>
+                </tfoot>
+              </table>
+            </div>
+            <!-- /.card-body -->
+          </div>
+          <!-- /.card -->
+<!-- /.card -->
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </section>
+    <!-- /.content -->
+{% endblock 'body' %}
+{% block 'js' %}
+    $(function () {
+        $('#example2').DataTable({
+          "paging": true,
+          "lengthChange": false,
+          "searching": false,
+          "ordering": true,
+          "info": true,
+          "autoWidth": false,
+        });
+      });
+{% endblock 'js' %}

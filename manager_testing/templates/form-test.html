@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block 'body' %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Nuevo Test</h3>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group {% if form.access_point_a.errors %}has-danger{% endif %}">
+                        {{ form.access_point_a }}
+                        {{ form.access_point_a.errors }}
+                        <label for="{{ form.access_point_a.id_for_label }}">{{ form.access_point_a.label }}</label>
+                    </div>
+                    <div class="form-group {% if form.access_point_b.errors %}has-danger{% endif %}">
+                        {{ form.access_point_b }}
+                        {{ form.access_point_b.errors }}
+                        <label for="{{ form.access_point_b.id_for_label }}">{{ form.access_point_b.label }}</label>
+                    </div>
+                    <div class="form-group {% if form.release.errors %}has-danger{% endif %}">
+                        {{ form.release }}
+                        {{ form.release.errors }}
+                        <label for="{{ form.release.id_for_label }}">{{ form.release.label }}</label>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary fuse-ripple-ready">Guardar</button>
+                        <a href="{% url 'tests' %}" class="btn btn-light fuse-ripple-ready">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+{% endblock 'body' %}
+{% block 'js' %}
+
+{% endblock 'js' %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block 'body' %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-10">
+                <h1>Access Points</h1>
+            </div>
+            <div class="col-sm-2">
+                <a href="{% url 'new-access_points' %}" class="btn btn-primary">Nueva Access Point</a>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Listado de access point</h3>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+              <table id="example2" class="table table-bordered table-hover">
+                <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Url</th>
+                  <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for access_point in list_access_point %}
+                    <tr>
+                        <td>{{ access_point.name }}</td>
+                        <td>{{ access_point.url }}</td>
+                        <td>
+                            <a href="{% url 'edit-access_points' access_point.pk %}" class="btn btn-secondary"><em class="fas fa-pen"></em></a>
+                            <a href="#" class="btn btn-danger"><em class="fa fa-trash"></em></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Url</th>
+                  <th>Acciones</th>
+                </tr>
+                </tfoot>
+              </table>
+            </div>
+            <!-- /.card-body -->
+          </div>
+          <!-- /.card -->
+<!-- /.card -->
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    </section>
+    <!-- /.content -->
+{% endblock 'body' %}
+{% block 'js' %}
+    $(function () {
+        $('#example2').DataTable({
+          "paging": true,
+          "lengthChange": false,
+          "searching": false,
+          "ordering": true,
+          "info": true,
+          "autoWidth": false,
+        });
+      });
+{% endblock 'js' %}

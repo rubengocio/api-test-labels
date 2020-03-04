@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block 'body' %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Nuevo Carrier</h3>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group {% if form.site.errors %}has-danger{% endif %}">
+                        {{ form.site }}
+                        {{ form.site.errors }}
+                        <label for="{{ form.site.id_for_label }}">{{ form.site.label }}</label>
+                    </div>
+                    <div class="form-group {% if form.code.errors %}has-danger{% endif %}">
+                        {{ form.code }}
+                        {{ form.code.errors }}
+                        <label for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
+                    </div>
+                    <div class="form-group {% if form.name.errors %}has-danger{% endif %}">
+                        {{ form.name }}
+                        {{ form.name.errors }}
+                        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    </div>
+                    <div class="form-group {% if form.enabled.errors %}has-danger{% endif %}">
+                        {{ form.enabled }}
+                        {{ form.enabled.errors }}
+                        <label for="{{ form.enabled.id_for_label }}">{{ form.enabled.label }}</label>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary fuse-ripple-ready">Guardar</button>
+                        <a href="{% url 'carriers' %}" class="btn btn-light fuse-ripple-ready">Cancelar</a>
+                    </div>
+
+                </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+{% endblock 'body' %}
+{% block 'js' %}
+
+{% endblock 'js' %}
