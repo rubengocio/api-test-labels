@@ -1,7 +1,8 @@
 from django.contrib import admin
 
 # Register your models here.
-from manager_testing.models import Test, TestPlan, Carrier, Service, TestPlanResult, StepResult, QueryParam, AccessPoint
+from manager_testing.models import Test, TestPlan, Carrier, Service, TestPlanResult, StepResult, QueryParam, \
+    AccessPoint, Facility
 
 
 class CarrierAdmin(admin.ModelAdmin):
@@ -10,6 +11,7 @@ class CarrierAdmin(admin.ModelAdmin):
         'code',
         'name'
     )
+    list_filter = ('site',)
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -19,14 +21,21 @@ class ServiceAdmin(admin.ModelAdmin):
         'name'
     )
 
+    list_filter = ('carrier__site',)
+
 
 class TestPlanAdmin(admin.ModelAdmin):
     list_display = (
         'service',
         'logistic_type',
         'shipment_id',
-        'response_type'
+        'response_type',
+        'facility',
+        'caller_id'
     )
+
+    list_filter = ('service__carrier__site', )
+    search_fields = ('shipment_id', )
 
 
 class TestPlanResultAdmin(admin.ModelAdmin):
@@ -56,6 +65,7 @@ class TestAdmin(admin.ModelAdmin):
 
 admin.site.register(Test, TestAdmin)
 admin.site.register(StepResult)
+admin.site.register(Facility)
 admin.site.register(Carrier, CarrierAdmin)
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(TestPlan, TestPlanAdmin)

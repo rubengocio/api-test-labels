@@ -20,8 +20,8 @@ class TestListView(View):
 class TestRunView(View):
     def get(self, request, pk):
         test = get_object_or_404(Test, pk=pk)
-        #run_tests.delay(test.id)
-        run_tests(test.id)
+        run_tests.delay(test.id)
+        #run_tests(test.id)
         return HttpResponseRedirect(reverse('tests'))
 
 

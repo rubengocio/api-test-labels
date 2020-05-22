@@ -1,9 +1,11 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
+from django.urls import reverse
 from django.views import View
 from django.shortcuts import get_object_or_404
 
 from manager_testing.models import Test, TestPlanResult, StepResult, ImageResult
+from manager_testing.tasks import processing_test
 
 
 class TestPlanResultListView(View):
@@ -58,3 +60,19 @@ class TestPlanDetailResultListView(View):
             'images_result': images_result
         }
         return HttpResponse(template.render(context, request))
+
+
+class TestPlanReloadResultView(View):
+
+    def get(self, request, pk):
+        test_plan_result = get_object_or_404(TestPlanResult, pk=pk)
+        test = test_plan_result.test
+        test_plan = test_plan_result.test_plan
+        processing_test(test.id, test_plan.id, 1, 1, False)
+        pass_test = test_plan_result.pass_test
+        test_plan_result.delete()
+
+        if pass_test:
+            return HttpResponseRedirect(reverse('success_results', kwargs={"pk": test.id}))
+        else:
+            return HttpResponseRedirect(reverse('fail_results', kwargs={"pk": test.id}))

@@ -20,7 +20,7 @@ from manager_testing.views.carriers import CarriersListView, CarrierNewView, Car
 from manager_testing.views.index import index
 from manager_testing.views.prueba import TestListView, TestRunView, TestNewView, TestEditView
 from manager_testing.views.resultado import TestPlanFailResultListView, \
-    TestPlanSuccessResultListView, TestPlanDetailResultListView
+    TestPlanSuccessResultListView, TestPlanDetailResultListView, TestPlanReloadResultView
 from manager_testing.views.services import ServiceListView, ServiceNewView, ServiceEditView
 from manager_testing.views.test_plan import TestPlanDetailView, TestPlanListView
 
@@ -35,6 +35,7 @@ urlpatterns = [
     path('success_results/<int:pk>', TestPlanSuccessResultListView.as_view(), name="success_results"),
     path('fail_results/<int:pk>', TestPlanFailResultListView.as_view(), name="fail_results"),
     path('detail_results/<int:pk>', TestPlanDetailResultListView.as_view(), name="detail_results"),
+    path('reload_result/<int:pk>', TestPlanReloadResultView.as_view(), name="reload_result"),
     path('access_points', AccessPointListView.as_view(), name="access_points"),
     path('access_point', AccessPointNewView.as_view(), name="new-access_points"),
     path('access_point/<int:pk>', AccessPointEditView.as_view(), name="edit-access_points"),

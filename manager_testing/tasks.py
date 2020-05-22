@@ -1,4 +1,5 @@
 import imutils
+from pyzbar import pyzbar
 import requests
 import string
 import random
@@ -36,8 +37,8 @@ def run_tests(test_id):
     cant = test_plans.count()
     for test_plan in test_plans:
         cont += 1
-        #processing_test.delay(test.id, test_plan.id, cont, cant)
         processing_test(test.id, test_plan.id, cont, cant)
+        print("Faltan %s" % (cant - cont))
 
 
 def random_string(string_length):
@@ -86,7 +87,7 @@ def add_images(test_plan_result, order, success, image_a, image_b):
     image_result.save()
 
 
-def processing_test(test_id, test_plan_id, cont, cant):
+def processing_test(test_id, test_plan_id, cont, cant, trace=True):
     from manager_testing.models import TestPlanResult
     result = False
     test = Test.objects.get(pk=test_id)
@@ -133,6 +134,7 @@ def processing_test(test_id, test_plan_id, cont, cant):
                     add_images(test_plan_result, i, False, prod_name_file, test_name_file)
                 else:
                     add_images(test_plan_result, i, True, prod_file, test_file)
+                    diff_barcode_image(test_plan_result, prod_file, test_file)
 
                 remove_file(prod_file)
                 remove_file(test_file)
@@ -152,15 +154,16 @@ def processing_test(test_id, test_plan_id, cont, cant):
 
             prod_name_file, test_name_file = diff_image_file(prod_zpl_image, test_zpl_image)
 
-            remove_file(prod_zpl_image)
-            remove_file(test_zpl_image)
-
             has_diff = False
             if prod_name_file or test_name_file:
                 add_images(test_plan_result, 0, False, prod_name_file, test_name_file)
                 has_diff = True
             else:
-                add_images(test_plan_result, 0, True, prod_name_file, test_name_file)
+                add_images(test_plan_result, 0, True, prod_zpl_image, test_zpl_image)
+                diff_barcode_image(test_plan_result, prod_zpl_image, test_zpl_image)
+
+            remove_file(prod_zpl_image)
+            remove_file(test_zpl_image)
 
             if has_diff:
                 print("There is difference in the images")
@@ -184,11 +187,12 @@ def processing_test(test_id, test_plan_id, cont, cant):
     else:
         test.fail_test += 1
 
-    if cont == cant:
-        test.running_end_date = datetime.now()
-        test.is_running = False
+    if trace:
+        if cont == cant:
+            test.running_end_date = datetime.now()
+            test.is_running = False
 
-    test.save()
+        test.save()
     print("finish shipment_id: ", test_plan.shipment_id)
 
 
@@ -250,8 +254,8 @@ def download_zpl_image_files(test_plan, path_file_prod, path_file_test):
     url_json_test = url % (test_plan.dpmm, test_plan.width, test_plan.height)
 
     headers = {'content-type': 'application/x-www-form-urlencoded'}
-    response_prod = requests.post(url_json_prod, data=prod_data, headers=headers)
-    response_test = requests.post(url_json_test, data=test_data, headers=headers)
+    response_prod = requests.post(url_json_prod, data=prod_data.encode('utf-8'), headers=headers)
+    response_test = requests.post(url_json_test, data=test_data.encode('utf-8'), headers=headers)
 
     if response_prod.status_code != 200:
         raise Exception("Error - Downloading prod zpl image file")
@@ -274,25 +278,15 @@ def download_zpl_image_files(test_plan, path_file_prod, path_file_test):
 
 
 def download_files(test, test_plan):
-    shipment_id = test_plan.shipment_id
-    response_type = test_plan.response_type
+    url_access_point_a = test.get_url_access_point_a(test_plan)
+    url_access_point_b = test.get_url_access_point_b(test_plan)
 
-    if shipment_id is None:
-        return False
-
-    if response_type is None:
-        return False
-
-    url_access_point_a = test.get_url_access_point_a()
-    url_access_point_b = test.get_url_access_point_b()
-
-    url_access_point_a += "&shipment_ids=%s&response_type=%s" % (shipment_id, response_type)
-    url_access_point_b += "&shipment_ids=%s&response_type=%s" % (shipment_id, response_type)
-
+    print("url_access_point_a: ", url_access_point_a)
     response_a = requests.get(url_access_point_a)
     if response_a.status_code != 200:
         raise Exception("Error - Downloading access_point A file")
 
+    print("url_access_point_b: ", url_access_point_b)
     response_b = requests.get(url_access_point_b)
     if response_b.status_code != 200:
         raise Exception("Error - Downloading access_point B file")
@@ -318,3 +312,86 @@ def download_files(test, test_plan):
     file_b.close()
 
     return name_file_a, name_file_b
+
+
+def diff_barcode_image(test_plan_result, path_file_a, path_file_b):
+    # load the input image
+    image_a = cv2.imread(path_file_a)
+    image_b = cv2.imread(path_file_b)
+
+    # find the barcodes in the image and decode each of the barcodes
+    barcodes_a = pyzbar.decode(image_a)
+    barcodes_b = pyzbar.decode(image_b)
+    has_difference = False
+
+    if len(barcodes_a) > 0 or len(barcodes_b) > 0:
+        add_step(test_plan_result, 3, True, "Comparing bar codes...")
+        if len(barcodes_a) >= len(barcodes_b):
+            for i in range(0, len(barcodes_a)):
+                barcode_data_a = barcodes_a[i].data.decode("utf-8")
+                barcode_type_a = barcodes_a[i].type
+
+                try:
+                    barcode_data_b = barcodes_b[i].data.decode("utf-8")
+                    barcode_type_b = barcodes_b[i].type
+                    #mark_image(barcodes_b[i], image_b)
+                except Exception as ex:
+                    barcode_data_b = ""
+                    barcode_type_b = ""
+
+                #mark_image(barcodes_a[i], image_a)
+
+                if barcode_type_a == barcode_type_b and barcode_data_a == barcode_data_b:
+                    text = "Barcode %s - Type %s - Value %s - No difference" % (str(i+1), barcode_type_a, barcode_data_a)
+                    add_step(test_plan_result, (3 + i + 1), True, text)
+                else:
+                    text = "Barcode A:\n"
+                    text = text + "Value %s - Type %s\n" % (barcode_data_a, barcode_type_a)
+                    text = text + "Barcode B:\n"
+                    text = text + "Value %s - Type %s\n" % (barcode_data_b, barcode_type_b)
+                    add_step(test_plan_result, (3 + i + 1), False, text)
+                    has_difference = True
+        else:
+            for i in range(0, len(barcodes_b)):
+                barcode_data_b = barcodes_b[i].data.decode("utf-8")
+                barcode_type_b = barcodes_b[i].type
+
+                try:
+                    barcode_data_a = barcodes_a[i].data.decode("utf-8")
+                    barcode_type_a = barcodes_a[i].type
+                    #mark_image(barcodes_a[i], image_a)
+                except Exception as ex:
+                    barcode_data_a = ""
+                    barcode_type_a = ""
+
+                #mark_image(barcodes_b[i], image_b)
+
+                if barcode_type_a == barcode_type_b and barcode_data_a == barcode_data_b:
+                    text = "Barcode %s - Type %s - Value %s - No difference" % (str(i+1), barcode_type_b, barcode_data_b)
+                    add_step(test_plan_result, (3 + i + 1), True, text)
+                else:
+                    text = "Barcode A:\n"
+                    text = text + "Value %s - Type %s\n" % (barcode_data_a, barcode_type_a)
+                    text = text + "Barcode B:\n"
+                    text = text + "Value %s - Type %s\n" % (barcode_data_b, barcode_type_b)
+                    add_step(test_plan_result, (3 + i + 1), False, text)
+                    has_difference = True
+
+    if has_difference:
+        raise Exception("There is difference in the barcodes")
+
+
+def mark_image(barcode, image):
+    (x, y, w, h) = barcode.rect
+    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+    # the barcode data is a bytes object so if we want to draw it on
+    # our output image we need to convert it to a string first
+    barcodeData = barcode.data.decode("utf-8")
+    barcodeType = barcode.type
+    # draw the barcode data and barcode type on the image
+    text = "{} ({})".format(barcodeData, barcodeType)
+    cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, (0, 0, 255), 2)
+    # print the barcode type and data to the terminal
+    print("[INFO] Found {} barcode: {}".format(barcodeType, barcodeData))
+

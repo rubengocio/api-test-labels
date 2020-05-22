@@ -5,6 +5,13 @@ from django.db import models
 from manager_testing import Constants
 
 
+class Facility(models.Model):
+    name = models.CharField(max_length=127, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class AccessPoint(models.Model):
     name = models.CharField(max_length=127)
     url = models.CharField(max_length=127)
@@ -75,29 +82,44 @@ class Test(models.Model):
     def __str__(self):
         return self.release
 
-    def get_url_access_point_a(self):
-        url = self.access_point_a.url
+    def get_url_access_point(self, access_point, test_plan):
+        shipment_id = test_plan.shipment_id
+        response_type = test_plan.response_type
+        url = access_point.url
 
-        query_params = QueryParam.objects.filter(access_point=self.access_point_a)
+        if shipment_id is None:
+            raise Exception("Error - shipment_id is required")
 
-        string_query = ""
-        for param in query_params:
-            string_query += "&%s=%s" % (param.key, param.value)
+        if response_type is None:
+            raise Exception("Error - response_type is required")
 
-        url = url + "?" + string_query
-        return url
-
-    def get_url_access_point_b(self):
-        url = self.access_point_b.url
-
-        query_params = QueryParam.objects.filter(access_point=self.access_point_b)
+        query_params = QueryParam.objects.filter(access_point=access_point)
 
         string_query = ""
         for param in query_params:
-            string_query += "&%s=%s" % (param.key, param.value)
+            if not (test_plan.caller_id and param.key == "caller.scopes"):
+                string_query += "&%s=%s" % (param.key, param.value)
 
         url = url + "?" + string_query
+
+        url += "&shipment_ids=%s" % shipment_id
+
+        if not test_plan.use_preferences:
+            url += "&response_type=%s" % response_type
+
+        if test_plan.facility:
+            url += "&facility=%s" % test_plan.facility.name
+
+        if test_plan.caller_id:
+            url += "&caller.id=%s" % test_plan.caller_id
+
         return url
+
+    def get_url_access_point_a(self, test_plan):
+        return self.get_url_access_point(self.access_point_a, test_plan)
+
+    def get_url_access_point_b(self, test_plan):
+        return self.get_url_access_point(self.access_point_b, test_plan)
 
 
 def to_json(self):
@@ -122,6 +144,9 @@ class TestPlan(models.Model):
     dpmm = models.IntegerField(null=True, blank=True)
     width = models.IntegerField(null=True, blank=True)
     height = models.IntegerField(null=True, blank=True)
+    facility = models.ForeignKey(Facility, null=True, blank=True, on_delete=models.CASCADE)
+    caller_id = models.BigIntegerField(null=True, blank=True)
+    use_preferences = models.BooleanField(default=False)
 
     def __str__(self):
         return u"%s - %s" % (self.service, self.logistic_type)
